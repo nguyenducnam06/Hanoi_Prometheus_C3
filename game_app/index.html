@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bếp Không Lãng Phí - Zero-Waste Kitchen</title>
-    <!-- Load Tailwind CSS -->
+    <title>Zero-Waste Kitchen - The Food Waste Game</title>
+    <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -12,12 +12,12 @@
 
     <div class="game-container">
         <div id="game-card" class="card p-6 md:p-8">
-            <h1 id="game-title" class="text-3xl font-extrabold text-indigo-700 mb-4 text-center">Bếp Không Lãng Phí</h1>
-            <p id="game-description" class="text-gray-600 mb-6 text-center">Chào mừng đến với hành trình giảm thiểu đồ ăn thừa. Mỗi quyết định của bạn sẽ giúp cứu hành tinh và ví tiền!</p>
+            <h1 id="game-title" class="text-3xl font-extrabold text-indigo-700 mb-4 text-center">Zero-Waste Kitchen</h1>
+            <p id="game-description" class="text-gray-600 mb-6 text-center">Welcome to the food waste challenge. Your choices impact your wallet and the planet!</p>
 
             <div id="status-bar" class="flex justify-between items-center bg-gray-100 p-3 rounded-lg mb-6 shadow-inner">
-                <span id="score-display" class="font-bold text-lg text-green-600">Lãng phí: 0%</span>
-                <span id="stage-display" class="font-bold text-lg text-gray-500">Giai đoạn 1/3</span>
+                <span id="score-display" class="font-bold text-lg text-red-600">Waste Score: 0%</span>
+                <span id="stage-display" class="font-bold text-lg text-gray-500">Stage 1/3</span>
             </div>
 
             <div id="game-content">
@@ -25,7 +25,7 @@
             </div>
 
             <div class="mt-6 flex justify-center">
-                <button id="next-button" class="action-button bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 disabled:opacity-50" onclick="nextStep()">Bắt đầu</button>
+                <button id="next-button" class="action-button bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 disabled:opacity-50" onclick="nextStep()">Start Challenge</button>
             </div>
         </div>
     </div>
@@ -33,23 +33,22 @@
     <script>
         const gameData = {
             currentStage: 0,
-            score: 0,
-            money: 100000,
-            items: [],
-            mergeSlots: [null, null, null, null, null, null],
-            family: { members: 4, capacity: 1.0 },
+            score: 0, // Waste score (lower is better)
+            money: 100000, // Starting budget
+            items: [], // Inventory of purchased items
+            mergeSlots: Array(6).fill(null), // Slots for leftovers in Stage 3
             shoppingItems: [
-                { name: 'Cà rốt (tươi)', cost: 15000, shelfLife: 3, id: 'carrot_f' },
-                { name: 'Gạo tẻ (1kg)', cost: 25000, shelfLife: 50, id: 'rice' },
-                { name: 'Thịt bò (tươi)', cost: 70000, shelfLife: 1, id: 'beef_f' },
-                { name: 'Trứng gà (10 quả)', cost: 30000, shelfLife: 7, id: 'egg' },
-                { name: 'Cải bó xôi (tươi)', cost: 18000, shelfLife: 2, id: 'spinach' },
-                { name: 'Thịt lợn đông lạnh', cost: 45000, shelfLife: 30, id: 'pork_fr' },
+                { name: 'Fresh Carrots', cost: 15000, shelfLife: 3, id: 'carrot_f', emoji: '🥕' },
+                { name: 'Rice (1kg)', cost: 25000, shelfLife: 50, id: 'rice', emoji: '🍚' },
+                { name: 'Fresh Beef Steak', cost: 70000, shelfLife: 1, id: 'beef_f', emoji: '🥩' },
+                { name: 'Eggs (10 pcs)', cost: 30000, shelfLife: 7, id: 'egg', emoji: '🥚' },
+                { name: 'Fresh Spinach', cost: 18000, shelfLife: 2, id: 'spinach', emoji: '🥬' },
+                { name: 'Frozen Pork', cost: 45000, shelfLife: 30, id: 'pork_fr', emoji: '🐖' },
             ],
             meals: [
-                { name: 'Phở bò', required: ['rice', 'beef_f'], leftovers: ['beef_left'], uses: 2, days: 1 },
-                { name: 'Cơm chiên', required: ['rice', 'egg'], leftovers: ['rice_left'], uses: 1, days: 3 },
-                { name: 'Canh rau cải', required: ['spinach'], leftovers: ['soup_base'], uses: 1, days: 2 },
+                { name: 'Beef Noodle Soup', required: ['rice', 'beef_f'], leftovers: ['beef_left'], uses: 2, days: 1 },
+                { name: 'Fried Rice', required: ['rice', 'egg'], leftovers: ['rice_left'], uses: 1, days: 3 },
+                { name: 'Spinach Soup', required: ['spinach'], leftovers: ['soup_base'], uses: 1, days: 2 },
             ],
         };
 
@@ -63,30 +62,26 @@
         };
 
         const stages = [
-            // Stage 0: Introduction (handled by initial state)
-
-            // Stage 1: Shopping (Chọn 3-4 món đồ)
+            // Stage 1: Shopping
             {
-                title: "Giai đoạn 1: Mua Sắm Thông Minh",
-                description: "Bạn có " + formatVND(gameData.money) + ". Hãy chọn 4 nguyên liệu. **Ưu tiên những món dễ hỏng (hạn ngắn) để dùng trước.**",
+                title: "Stage 1: Smart Shopping",
+                description: `You have ${formatVND(gameData.money)}. Select 4 ingredients. **Prioritize fresh items (short shelf life) to avoid spoilage!**`,
                 render: renderShopping,
                 validate: validateShopping,
                 next: generateStage2,
             },
-
-            // Stage 2: Planning (Dùng nguyên liệu theo hạn)
+            // Stage 2: Planning
             {
-                title: "Giai đoạn 2: Lên Kế Hoạch Bữa Ăn",
-                description: "Kế hoạch 3 ngày: Món nào nên dùng ngay? **Hạn chế để đồ tươi (1-2 ngày) hết hạn.**",
+                title: "Stage 2: Meal Planning Challenge (3 Days)",
+                description: "Plan 3 days of meals. **You must use or commit to using perishable items (1-2 day shelf life) quickly.**",
                 render: renderPlanning,
                 validate: validatePlanning,
                 next: generateStage3,
             },
-
-            // Stage 3: Solving Waste (Tái chế đồ thừa)
+            // Stage 3: Solving Waste
             {
-                title: "Giai đoạn 3: Tái Chế Đồ Thừa",
-                description: "Bạn đã lãng phí một số thứ, nhưng có thể cứu vãn! Hãy **kéo 2 món đồ thừa giống nhau** vào ô trống để **'Hợp nhất'** thành món ăn mới, giảm rác thải.",
+                title: "Stage 3: Leftover Rescue (Merge Puzzle)",
+                description: "Some items were wasted, but you have leftovers! **Drag and drop two identical leftover items** into the empty slots to **'Merge'** them into a new meal, reducing your waste score.",
                 render: renderMerging,
                 validate: validateMerging,
                 next: renderFinalScore,
@@ -95,15 +90,25 @@
 
         let selectedItems = new Set();
         let selectedMeal = null;
+        let planningDay = 1;
 
         // --- Utility Functions ---
         function formatVND(amount) {
-            return amount.toLocaleString('vi-VN') + ' VNĐ';
+            return amount.toLocaleString('en-US') + ' VND';
+        }
+        
+        function getEmoji(name) {
+             const item = gameData.shoppingItems.find(i => name.includes(i.name));
+             if (item) return item.emoji;
+             if (name.includes('Fried Rice')) return '🍛';
+             if (name.includes('Soup Base')) return '🍲';
+             if (name.includes('Merged Dish')) return '✨';
+             return '📦';
         }
 
         function updateStatus() {
-            elements.scoreDisplay.textContent = `Lãng phí: ${gameData.score}%`;
-            elements.stageDisplay.textContent = `Giai đoạn ${gameData.currentStage}/${stages.length}`;
+            elements.scoreDisplay.textContent = `Waste Score: ${gameData.score}%`;
+            elements.stageDisplay.textContent = `Stage ${gameData.currentStage}/${stages.length}`;
             elements.nextButton.disabled = true; 
         }
 
@@ -111,11 +116,11 @@
             elements.content.innerHTML = '';
         }
 
-        // --- Stage 0: Initial Start ---
+        // --- Stage Navigation ---
         function nextStep() {
-            gameData.currentStage++;
-            if (gameData.currentStage === 1) {
+            if (gameData.currentStage === 0) {
                 loadStage(0);
+                elements.nextButton.textContent = "Continue";
             } else if (gameData.currentStage <= stages.length) {
                 stages[gameData.currentStage - 1].next();
             }
@@ -143,20 +148,21 @@
 
         function renderShopping() {
             const listHtml = gameData.shoppingItems.map(item => `
-                <div id="item-${item.id}" class="item-card p-4 border-2 border-gray-200 rounded-lg text-center bg-gray-50" onclick="toggleSelection('${item.id}', ${item.cost})">
+                <div id="item-${item.id}" class="item-card p-4 border-2 border-gray-200 rounded-xl text-center bg-gray-50" onclick="toggleSelection('${item.id}', ${item.cost})">
+                    <p class="text-3xl">${item.emoji}</p>
                     <p class="font-semibold text-gray-800">${item.name}</p>
                     <p class="text-sm text-indigo-500">${formatVND(item.cost)}</p>
-                    <p class="text-xs text-red-500">HSD: ${item.shelfLife} ngày</p>
+                    <p class="text-xs text-red-500">Shelf Life: ${item.shelfLife} days</p>
                 </div>
             `).join('');
 
             elements.content.innerHTML = `
-                <div class="item-list max-w-sm mx-auto">
+                <div class="item-list max-w-lg mx-auto">
                     ${listHtml}
                 </div>
-                <p id="shopping-summary" class="text-center mt-4 text-sm font-semibold">Đã chọn: 0 món | Còn lại: ${formatVND(gameData.money)}</p>
+                <p id="shopping-summary" class="text-center mt-4 text-sm font-semibold">Selected: 0 items | Remaining Budget: ${formatVND(gameData.money)}</p>
             `;
-            elements.nextButton.textContent = "Chuyển sang Lên Kế hoạch";
+            elements.nextButton.textContent = "Proceed to Planning";
             updateShoppingSummary();
         }
 
@@ -174,9 +180,9 @@
                 element.classList.add('selected');
                 gameData.money -= cost;
             } else if (selectedItems.size >= 4) {
-                alert("Bạn chỉ được chọn tối đa 4 món.");
+                alert("You can only select a maximum of 4 items.");
             } else if (gameData.money < cost) {
-                alert("Không đủ tiền!");
+                alert("Insufficient funds!");
             }
             
             updateShoppingSummary();
@@ -184,7 +190,7 @@
         }
 
         function updateShoppingSummary() {
-            document.getElementById('shopping-summary').innerHTML = `Đã chọn: ${selectedItems.size} món | Còn lại: **${formatVND(gameData.money)}**`;
+            document.getElementById('shopping-summary').innerHTML = `Selected: ${selectedItems.size} items | Remaining Budget: **${formatVND(gameData.money)}**`;
         }
 
         function validateShopping() {
@@ -202,51 +208,77 @@
                     isLeftover: false
                 };
             });
+            planningDay = 1;
             loadStage(1);
         }
 
         // --- STAGE 2: PLANNING ---
-
         function renderPlanning() {
+             // Calculate waste score by checking expired items before rendering
+            let spoiledCount = 0;
+            gameData.items.forEach(item => {
+                if (!item.used && item.currentLife <= 0 && !item.isSpoiled) {
+                    item.isSpoiled = true;
+                    spoiledCount++;
+                }
+            });
+            gameData.score += spoiledCount * 10;
+            updateStatus();
+
             let itemHtml = '';
             gameData.items.forEach((item, index) => {
-                itemHtml += `
-                    <div id="plan-item-${index}" class="item-card p-2 rounded-lg text-center mb-2 ${item.used ? 'bg-green-100 disabled' : 'bg-yellow-100'}" 
-                         onclick="${item.used ? '' : `selectItemForPlanning(${index})`}">
-                        <p class="font-semibold text-gray-800">${item.name}</p>
-                        <p class="text-xs text-red-500">HSD còn: ${item.currentLife} ngày</p>
-                        ${item.used ? '<span class="text-green-600 font-bold">ĐÃ DÙNG</span>' : ''}
-                    </div>
-                `;
+                // Only show items that are not spoiled and not used
+                if (!item.used && !item.isSpoiled) {
+                    itemHtml += `
+                        <div id="plan-item-${index}" class="item-card p-2 rounded-lg text-center mb-2 bg-yellow-100">
+                            <p class="text-xl">${item.emoji}</p>
+                            <p class="font-semibold text-gray-800">${item.name}</p>
+                            <p class="text-xs text-red-500">Shelf Life: ${item.currentLife} days</p>
+                            <button class="text-xs text-indigo-600 mt-1 hover:underline" onclick="selectItemForMeal(${index})">Use Now</button>
+                        </div>
+                    `;
+                }
             });
 
-            let mealHtml = gameData.meals.map((meal, index) => `
-                <div id="meal-card-${index}" class="p-3 border-2 border-gray-300 rounded-lg text-center bg-gray-50 cursor-pointer" 
-                     onclick="selectMeal(${index})">
-                    <p class="font-bold text-indigo-600">${meal.name}</p>
-                    <p class="text-xs text-gray-500">Cần: ${meal.required.length} nguyên liệu</p>
-                </div>
-            `).join('');
+            const spoiledItems = gameData.items.filter(item => item.isSpoiled).map(item => item.name).join(', ');
+            
+            let mealHtml = gameData.meals.map((meal, index) => {
+                const requiredNames = meal.required.map(id => gameData.shoppingItems.find(i => i.id === id).name).join(', ');
+                return `
+                    <div id="meal-card-${index}" class="p-3 border-2 border-gray-300 rounded-xl text-center bg-gray-50 cursor-pointer hover:bg-gray-100" 
+                         onclick="selectMeal(${index})">
+                        <p class="font-bold text-indigo-600">${meal.name}</p>
+                        <p class="text-xs text-gray-500">Needs: ${meal.required.length} items</p>
+                    </div>
+                `;
+            }).join('');
+            
+            let summaryHtml = gameData.items.filter(i => i.used).map(i => `<span class="inline-block bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full m-0.5">${i.name} (Used)</span>`).join('');
 
             elements.content.innerHTML = `
+                <p class="text-center mb-4 text-xl font-bold text-gray-700">Day: <span id="planning-day-display" class="text-indigo-600">${planningDay} / 3</span></p>
                 <div class="grid md:grid-cols-3 gap-4">
-                    <div class="col-span-1 p-3 bg-gray-50 rounded-lg h-full">
-                        <h3 class="font-bold mb-3 text-lg text-indigo-700">Kho Nguyên Liệu</h3>
-                        <div id="planning-items">${itemHtml}</div>
+                    <div class="col-span-1 p-3 bg-red-50 rounded-xl h-full">
+                        <h3 class="font-bold mb-3 text-lg text-red-700">Inventory (${gameData.items.filter(i => !i.used && !i.isSpoiled).length} left)</h3>
+                        <div id="planning-items">${itemHtml || '<p class="text-gray-500 text-sm">Inventory empty or all used/spoiled!</p>'}</div>
                     </div>
-                    <div class="col-span-2 p-3 bg-gray-50 rounded-lg">
-                        <h3 class="font-bold mb-3 text-lg text-indigo-700">Các Bữa Ăn (3 ngày)</h3>
+                    <div class="col-span-2 p-3 bg-blue-50 rounded-xl">
+                        <h3 class="font-bold mb-3 text-lg text-indigo-700">Today's Meals</h3>
                         <div class="grid grid-cols-3 gap-3" id="meal-grid">${mealHtml}</div>
 
-                        <div id="meal-detail" class="mt-4 p-4 border border-indigo-300 rounded-lg bg-indigo-50 hidden">
+                        <div id="meal-detail" class="mt-4 p-4 border border-indigo-300 rounded-xl bg-indigo-50 hidden">
                             <h4 id="detail-title" class="font-extrabold text-indigo-800 text-xl mb-2"></h4>
                             <p id="detail-requirements" class="text-sm text-gray-700 mb-2"></p>
-                            <button id="commit-meal-button" class="action-button bg-green-600 text-white py-2 px-4 rounded-full mt-2" onclick="commitMeal()" disabled>Xác nhận nấu</button>
+                            <button id="commit-meal-button" class="action-button bg-green-600 text-white py-2 px-4 rounded-full mt-2" onclick="commitMeal()" disabled>Confirm Meal & End Day</button>
                         </div>
                     </div>
                 </div>
+                <div class="mt-6 p-3 bg-gray-100 rounded-xl">
+                    <p class="text-sm font-semibold text-gray-700">Summary:</p>
+                    <p class="text-xs text-red-500">Spoiled today: ${spoiledCount} item(s) (${spoiledItems})</p>
+                    <p class="text-xs text-green-700">Items Used So Far: ${summaryHtml}</p>
+                </div>
             `;
-            elements.nextButton.textContent = "Kết thúc Kế hoạch (Xem kết quả)";
             elements.nextButton.disabled = !validatePlanning();
         }
 
@@ -257,71 +289,70 @@
             
             document.getElementById('detail-title').textContent = selectedMeal.name;
             const requiredNames = selectedMeal.required.map(id => gameData.shoppingItems.find(i => i.id === id).name).join(', ');
-            document.getElementById('detail-requirements').innerHTML = `**Nguyên liệu cần:** ${requiredNames} <br> <span class="text-sm text-red-700">Sẽ dùng hết ${selectedMeal.uses} nguyên liệu trong 1 ngày.</span>`;
+            document.getElementById('detail-requirements').innerHTML = `**Items Needed:** ${requiredNames} <br> <span class="text-sm text-red-700">This meal will consume ${selectedMeal.uses} fresh item(s).</span>`;
             document.getElementById('meal-detail').classList.remove('hidden');
             
-            // Check if player has required items and they are fresh enough
-            const hasRequired = selectedMeal.required.every(reqId => gameData.items.some(item => item.id === reqId && !item.used && item.currentLife >= selectedMeal.days));
+            // Check if player has required items that are not spoiled and not used
+            const hasRequired = selectedMeal.required.every(reqId => gameData.items.some(item => item.id === reqId && !item.used && !item.isSpoiled));
             document.getElementById('commit-meal-button').disabled = !hasRequired;
         }
-        
+
         function commitMeal() {
             if (!selectedMeal) return;
 
-            // 1. Mark items as used/expired
-            const usedItems = [];
-            
-            // Simple check: If the item is FRESH (shelfLife <= 2 days) but is NOT used on day 1 (meal.days === 1), it expires.
-            const itemsToUse = gameData.items.filter(item => selectedMeal.required.includes(item.id) && !item.used).slice(0, selectedMeal.uses);
+            // 1. Mark items as used and generate leftovers
+            const itemsToUse = gameData.items.filter(item => selectedMeal.required.includes(item.id) && !item.used && !item.isSpoiled).slice(0, selectedMeal.uses);
             
             itemsToUse.forEach(item => {
                 item.used = true;
-                usedItems.push(item);
-            });
-            
-            // Check for initial waste (not used items that expire soon)
-            gameData.items.forEach(item => {
-                if (!item.used && item.shelfLife <= selectedMeal.days) {
-                    item.currentLife = 0; // Expires immediately
-                } else if (!item.used) {
-                    item.currentLife -= selectedMeal.days; // Decrement shelf life
-                }
-            });
-
-            // 2. Generate Leftovers for Stage 3
-            if (selectedMeal.leftovers && selectedMeal.leftovers.length > 0) {
-                 // 1 used item generates 1 leftover piece. Max 2 leftovers per meal.
-                for (let i = 0; i < Math.min(usedItems.length, 2); i++) {
+                // Generate a random chance for a leftover item
+                if (Math.random() > 0.3) { // 70% chance to generate a leftover item
                     gameData.items.push({ 
-                        name: `Đồ thừa: ${selectedMeal.leftovers[0].replace('_left', '')}`, 
-                        id: selectedMeal.leftovers[0], 
+                        name: `Leftover: ${item.name.replace('Fresh', '').trim()}`, 
+                        id: item.id.replace('_f', '_left'), 
                         currentLife: 1, 
                         used: false,
                         isLeftover: true,
                         isMerged: false,
                     });
                 }
-            }
+            });
+            
+            // 2. Decrement shelf life for all unused items
+            gameData.items.forEach(item => {
+                if (!item.used && !item.isSpoiled) {
+                    item.currentLife -= 1; // 1 day passed
+                }
+            });
 
-            // 3. Update game state and narrative
-            alert(`Bạn đã nấu món ${selectedMeal.name}! ${usedItems.length} nguyên liệu đã được dùng. Hạn sử dụng của các món khác đã trôi qua.`);
+            // 3. Increment day counter and reset UI
+            planningDay++;
             selectedMeal = null;
-            renderPlanning();
+            document.getElementById('meal-detail').classList.add('hidden');
+            
+            if (planningDay <= 3) {
+                alert(`Meal cooked successfully! Day ${planningDay} begins. Shelf lives updated.`);
+                renderPlanning(); 
+            } else {
+                 // Game ends after 3 days of planning
+                alert(`End of planning phase! Now let's deal with the remaining items.`);
+                elements.nextButton.disabled = false;
+            }
         }
 
         function validatePlanning() {
-            // Simple validation: Allow transition to Stage 3 after all meals are theoretically planned (3 days passed).
-            // This is purely narrative for this front-end game structure.
-            return gameData.items.filter(item => item.used).length >= 3;
+            // Can proceed to Stage 3 only after Day 3
+            return planningDay > 3;
         }
 
         // --- STAGE 3: MERGING ---
 
         function generateStage3() {
-            // Calculate final waste score based on unused/expired items
-            gameData.score = gameData.items.filter(item => !item.used && !item.isLeftover && item.currentLife <= 0).length * 10;
+            // Final check for waste: items unused, not spoiled, but expired
+            const finalSpoiled = gameData.items.filter(item => !item.used && !item.isSpoiled && !item.isLeftover && item.currentLife <= 0);
+            gameData.score += finalSpoiled.length * 10;
             
-            // Populate merge slots with leftovers (max 6 slots)
+            // Get all leftovers for the merge slots (max 6 slots)
             const leftovers = gameData.items.filter(item => item.isLeftover && !item.isMerged);
             
             gameData.mergeSlots = Array(6).fill(null);
@@ -336,93 +367,92 @@
             let mergeGridHtml = '';
             gameData.mergeSlots.forEach((slot, index) => {
                 mergeGridHtml += `
-                    <div id="merge-slot-${index}" class="merge-slot" onclick="selectMergeSlot(${index})">
+                    <div id="merge-slot-${index}" class="merge-slot" onclick="selectMergeSlot(${index})" draggable="${slot ? 'true' : 'false'}" 
+                         ondragstart="drag(event, ${index})">
                         ${slot ? `
-                            <span class="text-xl">${getEmoji(slot.name)}</span>
-                            <span class="font-bold text-indigo-700">${slot.name}</span>
-                        ` : '<span class="text-gray-400">Ô trống</span>'}
+                            <span class="text-3xl">${getEmoji(slot.name)}</span>
+                            <span class="font-bold text-indigo-700">${slot.name.replace('Leftover:', '').trim()}</span>
+                        ` : '<span class="text-gray-400">Empty Slot</span>'}
                     </div>
                 `;
             });
 
             elements.content.innerHTML = `
                 <div class="flex justify-center mb-6">
-                     <p class="font-bold text-xl text-red-600">Điểm Lãng phí hiện tại: ${gameData.score}%</p>
+                     <p class="font-bold text-xl text-red-600">Current Waste Score: ${gameData.score}%</p>
                 </div>
                 <div id="merge-grid">
                     ${mergeGridHtml}
                 </div>
-                <p id="merge-message" class="text-center mt-4 text-sm font-bold text-gray-700">Chọn 2 món đồ thừa giống nhau để hợp nhất!</p>
+                <p id="merge-message" class="text-center mt-4 text-base font-bold text-gray-700">Drag two identical leftover items onto each other or click them to attempt a Merge!</p>
+                <p class="text-center text-sm text-gray-500 mt-2">Example: 2x 'Leftover Rice' = 'Merged Dish' (Fried Rice)</p>
             `;
             
-            elements.nextButton.textContent = "Hoàn tất Tái chế (Xem kết quả cuối)";
-            elements.nextButton.disabled = false; // Always allow moving to final screen
+            // Set up Drag and Drop functionality
+            document.querySelectorAll('.merge-slot').forEach(slot => {
+                slot.addEventListener('dragover', allowDrop);
+                slot.addEventListener('drop', drop);
+            });
+
+            elements.nextButton.textContent = "Finish & See Final Result";
+            elements.nextButton.disabled = false; 
+            updateStatus();
         }
         
-        let mergeSelection = []; // Stores indices of selected slots
+        let mergeSelection = []; 
 
-        function getEmoji(name) {
-             if (name.includes('Cà rốt')) return '🥕';
-             if (name.includes('Gạo')) return '🍚';
-             if (name.includes('Thịt bò')) return '🥩';
-             if (name.includes('Soup')) return '🍲';
-             if (name.includes('Cơm rang')) return '🍛';
-             return '📦';
+        function allowDrop(ev) {
+            ev.preventDefault();
         }
 
-        function selectMergeSlot(index) {
-            const slot = gameData.mergeSlots[index];
-            if (!slot) return;
-            
-            const slotElement = document.getElementById(`merge-slot-${index}`);
+        function drag(ev, index) {
+            ev.dataTransfer.setData("text/plain", index);
+        }
 
-            if (mergeSelection.includes(index)) {
-                // Deselect
-                mergeSelection = mergeSelection.filter(i => i !== index);
-                slotElement.classList.remove('selected');
-            } else if (mergeSelection.length < 2) {
-                // Select
-                mergeSelection.push(index);
-                slotElement.classList.add('selected');
+        function drop(ev) {
+            ev.preventDefault();
+            const sourceIndex = parseInt(ev.dataTransfer.getData("text/plain"));
+            const targetElementId = ev.currentTarget.id;
+            const targetIndex = parseInt(targetElementId.split('-')[2]);
+
+            // Check if dragging onto a non-empty slot (must merge onto another item)
+            if (gameData.mergeSlots[targetIndex] && sourceIndex !== targetIndex) {
+                 attemptMergeDrag(sourceIndex, targetIndex);
             } else {
-                 // Max selected, reset
-                document.querySelectorAll('.merge-slot').forEach(el => el.classList.remove('selected'));
-                mergeSelection = [index];
-                slotElement.classList.add('selected');
-            }
-            
-            if (mergeSelection.length === 2) {
-                attemptMerge();
+                 alert("Merge failed: Drag the item onto another existing item to merge them!");
             }
         }
-
-        function attemptMerge() {
-            const index1 = mergeSelection[0];
-            const index2 = mergeSelection[1];
+        
+        function attemptMergeDrag(index1, index2) {
             const item1 = gameData.mergeSlots[index1];
             const item2 = gameData.mergeSlots[index2];
             
-            // Check if items are identical and are leftovers (not merged yet)
+            // Check if items are identical (by ID) and are leftovers
             if (item1 && item2 && item1.id === item2.id && item1.isLeftover && item2.isLeftover) {
                 // Successful Merge!
-                gameData.mergeSlots[index1] = { 
-                    name: "Món Tái chế: Cơm rang/Soup", 
+                gameData.mergeSlots[index2] = { 
+                    name: `Merged Dish: ${item1.name.replace('Leftover:', '').trim()} Soup`, // Simple rename
                     id: "merged_dish", 
                     isLeftover: false,
                     isMerged: true, 
-                    currentLife: 2 
+                    currentLife: 2,
+                    emoji: '✨' 
                 };
-                gameData.mergeSlots[index2] = null; // Clear the second slot
+                gameData.mergeSlots[index1] = null; // Clear the source slot
                 
                 gameData.score = Math.max(0, gameData.score - 10); // Reduce waste score
-                alert(`Thành công! 🥳 Bạn đã hợp nhất ${item1.name} thành một món ăn mới! Lãng phí giảm 10%.`);
+                alert(`Success! 🎉 You recycled ${item1.name} into a Merged Dish! Waste score reduced by 10%.`);
                 
             } else {
-                alert("Hợp nhất thất bại. Bạn phải chọn 2 món đồ thừa giống nhau.");
+                alert("Merge failed: You must combine 2 identical leftover items (e.g., 2x Leftover Rice).");
             }
             
-            mergeSelection = [];
             renderMerging(); 
+        }
+
+        function validateMerging() {
+            // Validation is not strictly necessary for progression here, as player can choose to stop merging anytime.
+            return true;
         }
 
         // --- FINAL STAGE ---
@@ -431,37 +461,37 @@
             let finalMessage = '';
             let finalScore = gameData.score;
             
-            // Calculate expired items not accounted for in stage 3
-            const unusedExpired = gameData.items.filter(item => !item.used && !item.isLeftover && item.currentLife <= 0);
-            finalScore += unusedExpired.length * 5; 
+            // Count leftover items that were NOT merged (still garbage)
+            const unmergedLeftovers = gameData.mergeSlots.filter(item => item && item.isLeftover);
+            finalScore += unmergedLeftovers.length * 5; 
 
             if (finalScore === 0) {
-                finalMessage = "Hoàn hảo! Bạn là bậc thầy Quản lý Bếp Xanh. Không lãng phí, không rác thải!";
+                finalMessage = "Perfect! You are a Zero-Waste Master Chef! No waste, zero trash.";
             } else if (finalScore <= 15) {
-                finalMessage = "Rất tốt! Bạn đã quản lý rất hiệu quả. Chỉ có một chút lãng phí nhỏ không đáng kể. Tiếp tục phát huy nhé!";
+                finalMessage = "Excellent! You managed your kitchen very efficiently. Just a few minor scraps were left.";
             } else {
-                finalMessage = "Cần cải thiện! Có vẻ bạn đã mua sắm quá nhiều hoặc để quên đồ thừa trong tủ lạnh. Hãy nhớ, lãng phí thực phẩm gây tốn kém và hại môi trường!";
+                finalMessage = `Needs Improvement. Your final waste score is high (${finalScore}%). You likely bought too much or failed to use items with a short shelf life. Remember the cost to the planet and your wallet!`;
             }
 
-            elements.title.textContent = "KẾT QUẢ CUỐI CÙNG";
-            elements.description.textContent = "Cảm ơn bạn đã tham gia thử thách Bếp Không Lãng Phí!";
+            elements.title.textContent = "FINAL RESULTS";
+            elements.description.textContent = "Thank you for taking the Zero-Waste Kitchen Challenge!";
             elements.content.innerHTML = `
                 <div class="text-center p-6 bg-indigo-50 rounded-xl">
-                    <p class="text-6xl mb-4">${finalScore === 0 ? '✨' : (finalScore <= 15 ? '👍' : '🗑️')}</p>
-                    <p class="text-2xl font-extrabold text-indigo-700 mb-3">Tỷ lệ Lãng phí cuối cùng: ${finalScore}%</p>
+                    <p class="text-6xl mb-4">${finalScore === 0 ? '🏆' : (finalScore <= 15 ? '👍' : '🗑️')}</p>
+                    <p class="text-2xl font-extrabold text-indigo-700 mb-3">Final Waste Score: ${finalScore}%</p>
                     <p class="text-lg text-gray-700">${finalMessage}</p>
                     
                     <div class="mt-6 border-t pt-4 text-sm text-gray-500">
-                        <p class="font-bold text-gray-800 mb-1">Bài học rút ra:</p>
-                        <ul class="list-disc list-inside text-left mx-auto max-w-xs">
-                            <li>Mua theo kế hoạch, không theo cảm xúc.</li>
-                            <li>Ưu tiên dùng đồ hạn ngắn (tươi) trước.</li>
-                            <li>Tận dụng đồ thừa để nấu món mới (Zero-Waste).</li>
+                        <p class="font-bold text-gray-800 mb-1">Key Takeaways:</p>
+                        <ul class="list-disc list-inside text-left mx-auto max-w-sm">
+                            <li>**Shop with Intention:** Only buy what you need for the week.</li>
+                            <li>**FIFO Rule:** Use Fresh and highly perishable items first.</li>
+                            <li>**Creative Recycling:** Repurpose leftovers into new meals.</li>
                         </ul>
                     </div>
                 </div>
             `;
-            elements.nextButton.textContent = "Chơi lại";
+            elements.nextButton.textContent = "Play Again";
             elements.nextButton.onclick = () => window.location.reload();
             updateStatus();
         }
