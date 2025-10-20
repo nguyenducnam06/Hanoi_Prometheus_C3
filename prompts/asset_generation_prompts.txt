@@ -1,0 +1,2 @@
+Generate a supermarket background, a kitchen background, a menu background. all in this style
+In the previous style, generate a beef image, a carrot image, an egg image, a spinach image, a rice image.
