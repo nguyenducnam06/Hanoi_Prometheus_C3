@@ -36,6 +36,24 @@
 
     <script>        
     
+        const CLICK_SOUND_SRC = 'assets/sounds/computer-mouse-click.mp3'; // add this file to your assets folder
+        const preloadClick = new Audio(CLICK_SOUND_SRC);
+        preloadClick.preload = 'auto';
+        preloadClick.volume = 0.35;
+
+        function playClickSound() {
+            // create new Audio so repeated rapid clicks overlap
+            const a = new Audio(CLICK_SOUND_SRC);
+            a.volume = 0.35;
+            a.play().catch(() => {});
+        }
+
+        // play on most user clicks but ignore typing in inputs/textareas
+        document.addEventListener('click', (e) => {
+            const t = e.target;
+            if (t.closest('input, textarea, [contenteditable="true"], .no-click-sound')) return;
+            playClickSound();
+        });
         class ZeroWasteGame {
             constructor() {
                 this.elements = { /* ... DOM elements ... */ };
