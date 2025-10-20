@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero-Waste Kitchen - Pro Chef Edition</title>
+    <title>Zero-Waste Kitchen - Stable Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -14,7 +14,7 @@
         }
 
         .game-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 2rem auto;
             padding: 1rem;
         }
@@ -25,23 +25,44 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
-        .action-button,
-        .quantity-btn {
+        .nav-button.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+
+        .progress-bar-container {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            height: 20px;
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .progress-bar {
+            background-color: #f59e0b;
+            height: 100%;
+            transition: width 0.2s linear;
+        }
+
+        .stove {
+            border: 3px dashed #d1d5db;
+            border-radius: 1rem;
+            min-height: 120px;
+            background-size: 50%;
+            background-position: center;
+            background-repeat: no-repeat;
             transition: all 0.2s ease-in-out;
         }
 
-        .action-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-        }
-
-        .quantity-btn:hover {
-            background-color: #d1d5db;
-        }
-
-        .recipe-card.droppable {
-            border: 2px dashed #4f46e5;
+        .stove.droppable {
+            border-color: #4f46e5;
             background-color: #eef2ff;
+        }
+
+        .stove.cooking {
+            border-style: solid;
+            border-color: #f59e0b;
+            background-image: url('https://img.icons8.com/ios-filled/50/000000/fire-element.png');
         }
 
         .inventory-item {
@@ -62,6 +83,7 @@
             flex-direction: column;
             gap: 0.5rem;
             align-items: center;
+            pointer-events: none;
         }
 
         .notification {
@@ -105,78 +127,371 @@
 </head>
 
 <body>
-
     <div class="game-container">
         <div id="game-card" class="card p-6 md:p-8">
-            <h1 id="game-title" class="text-3xl font-extrabold text-indigo-700 mb-4 text-center">Zero-Waste Kitchen</h1>
-            <p id="game-description" class="text-gray-600 mb-6 text-center">Challenge: Plan 3 days of meals without
-                wasting food!</p>
+            <h1 id="game-title" class="text-3xl font-extrabold text-indigo-700 mb-2 text-center">Zero-Waste Kitchen</h1>
+            <p id="game-description" class="text-gray-600 mb-4 text-center">A real-time challenge of cooking and
+                planning!</p>
+
+            <div id="day-timer-container" class="mb-4 hidden">
+                <div class="flex justify-between items-center mb-1 text-sm font-semibold">
+                    <span id="day-display" class="text-gray-700">Day: 1 / 5</span>
+                    <span id="time-display" class="text-gray-700">Time Remaining</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="day-progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
 
             <div id="status-bar" class="flex justify-between items-center bg-gray-100 p-3 rounded-lg mb-6 shadow-inner">
                 <span id="score-display" class="font-bold text-lg text-red-600">Waste Score: 0%</span>
-                <span id="day-display" class="font-bold text-lg text-gray-500">Day: 0 / 3</span>
+                <span id="money-display" class="font-bold text-lg text-green-600">Budget: 100,000 VND</span>
+            </div>
+
+            <div id="navigation-bar" class="flex justify-center gap-2 mb-6 hidden">
+                <button id="nav-kitchen" class="nav-button font-bold py-2 px-6 rounded-full"
+                    onclick="game.switchView('kitchen')">🍳 Nhà Bếp</button>
+                <button id="nav-shop" class="nav-button font-bold py-2 px-6 rounded-full"
+                    onclick="game.switchView('shop')">🛒 Siêu Thị</button>
             </div>
 
             <div id="game-content"></div>
 
             <div id="button-container" class="mt-8 flex justify-center">
                 <button id="action-button"
-                    class="action-button bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"></button>
+                    class="action-button bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700"></button>
             </div>
         </div>
     </div>
-
     <div id="notification-area"></div>
 
     <script>
         class ZeroWasteGame {
             constructor() {
-                this.elements = { /* ... DOM elements ... */ };
+                // DOM Elements
                 this.elements = {
                     title: document.getElementById('game-title'),
                     description: document.getElementById('game-description'),
                     content: document.getElementById('game-content'),
                     actionButton: document.getElementById('action-button'),
                     scoreDisplay: document.getElementById('score-display'),
+                    moneyDisplay: document.getElementById('money-display'),
                     dayDisplay: document.getElementById('day-display'),
                     notificationArea: document.getElementById('notification-area'),
+                    dayTimerContainer: document.getElementById('day-timer-container'),
+                    dayProgressBar: document.getElementById('day-progress-bar'),
+                    navigationBar: document.getElementById('navigation-bar'),
                 };
 
-                this.shoppingItems = [
-                    { name: 'Fresh Carrots', cost: 15000, shelfLife: 3, id: 'carrot', emoji: '🥕' },
-                    { name: 'Rice (1kg)', cost: 25000, shelfLife: 50, id: 'rice', emoji: '🍚' },
-                    { name: 'Fresh Beef Steak', cost: 70000, shelfLife: 1, id: 'beef', emoji: '🥩' },
-                    { name: 'Eggs (10 pcs)', cost: 30000, shelfLife: 7, id: 'egg', emoji: '🥚' },
-                    { name: 'Fresh Spinach', cost: 18000, shelfLife: 2, id: 'spinach', emoji: '🥬' },
-                    { name: 'Frozen Pork', cost: 45000, shelfLife: 30, id: 'pork', emoji: '🐖' },
-                ];
-                this.recipes = [
-                    { id: 'pho', name: 'Beef Noodle Soup', required: ['beef', 'rice'], leftover: { name: 'Soup Base', id: 'soup_base', emoji: '🍲' } },
-                    { id: 'fried_rice', name: 'Fried Rice', required: ['rice', 'egg'], leftover: { name: 'Leftover Rice', id: 'leftover_rice', emoji: '🍚' } },
-                    { id: 'spinach_soup', name: 'Spinach Soup', required: ['spinach'], leftover: { name: 'Veggie Broth', id: 'veggie_broth', emoji: '🥣' } },
-                ];
-
+                // Initialize Data and Game State
+                this.initData();
                 this.init();
             }
 
+            initData() {
+                // Using function to easily reset on new game
+                this.shoppingItems = [
+                    { name: 'Carrots', cost: 15000, shelfLife: 3, id: 'carrot', emoji: '🥕', locked: false, unlockCost: 0 },
+                    { name: 'Rice', cost: 25000, shelfLife: 50, id: 'rice', emoji: '🍚', locked: false, unlockCost: 0 },
+                    { name: 'Beef', cost: 70000, shelfLife: 1, id: 'beef', emoji: '🥩', locked: false, unlockCost: 0 },
+                    { name: 'Eggs', cost: 30000, shelfLife: 7, id: 'egg', emoji: '🥚', locked: false, unlockCost: 0 },
+                    { name: 'Spinach', cost: 18000, shelfLife: 2, id: 'spinach', emoji: '🥬', locked: false, unlockCost: 0 },
+                    { name: 'Avocado', cost: 40000, shelfLife: 2, id: 'avocado', emoji: '🥑', locked: true, unlockCost: 50000 },
+                    { name: 'Salmon', cost: 95000, shelfLife: 1, id: 'salmon', emoji: '🍣', locked: true, unlockCost: 100000 },
+                ];
+                this.recipes = [
+                    { id: 'pho', name: 'Beef Soup', required: ['beef', 'rice'], cookingTime: 15000, emoji: '🍜' },
+                    { id: 'fried_rice', name: 'Fried Rice', required: ['rice', 'egg'], cookingTime: 10000, emoji: '🍛' },
+                    { id: 'spinach_soup', name: 'Spinach Soup', required: ['spinach', 'carrot'], cookingTime: 8000, emoji: '🍲' },
+                ];
+            }
+
             init() {
+                if (this.dayTimer) clearInterval(this.dayTimer);
+                this.initData(); // Reset items and recipes in case they were unlocked
                 this.state = {
-                    stage: 'welcome',
+                    currentView: 'welcome',
                     day: 0,
+                    maxDays: 5,
                     score: 0,
-                    money: 200000, // Increased budget for quantity shopping
-                    shoppingCart: new Map(), // Use a Map for quantities
-                    inventory: [], // Will hold unique instances of items
-                    leftovers: [],
+                    money: 100000,
+                    inventory: [],
+                    stoves: [
+                        { cooking: false, recipe: null, timeLeft: 0 },
+                        { cooking: false, recipe: null, timeLeft: 0 },
+                        { cooking: false, recipe: null, timeLeft: 0 },
+                    ],
                 };
+                this.dayTimer = null;
+                this.dayDuration = 60000; // 60 seconds per day
+                this.timeRemaining = this.dayDuration;
                 this.render();
             }
 
-            // --- UTILITY ---
+            // --- GAME LOOP & TIME MANAGEMENT ---
+            startGameLoop() {
+                this.dayTimer = setInterval(() => {
+                    this.timeRemaining -= 100;
+                    this.elements.dayProgressBar.style.width = `${(this.timeRemaining / this.dayDuration) * 100}%`;
+
+                    let stoveViewNeedsUpdate = false;
+                    this.state.stoves.forEach((stove, index) => {
+                        if (stove.cooking) {
+                            stove.timeLeft -= 100;
+                            // Update the specific stove's progress bar
+                            const stoveProgress = document.querySelector(`#stove-${index} .cooking-progress`);
+                            if (stoveProgress) {
+                                stoveProgress.style.width = `${((stove.recipe.cookingTime - stove.timeLeft) / stove.recipe.cookingTime) * 100}%`;
+                            }
+
+                            if (stove.timeLeft <= 0) {
+                                this.finishCooking(index);
+                                stoveViewNeedsUpdate = true;
+                            }
+                        }
+                    });
+
+                    if (stoveViewNeedsUpdate) this.renderKitchenView(); // Only re-render kitchen if a meal is finished
+
+                    if (this.timeRemaining <= 0) {
+                        this.endDay();
+                    }
+                }, 100);
+            }
+
+            startDay() {
+                this.state.day++;
+                this.timeRemaining = this.dayDuration;
+                this.state.inventory.forEach(item => { if (!item.used) item.shelfLife-- });
+                this.switchView('kitchen');
+                this.startGameLoop();
+            }
+
+            endDay() {
+                clearInterval(this.dayTimer);
+                this.dayTimer = null;
+                this.showNotification(`Day ${this.state.day} has ended!`, "info");
+
+                let spoiledItems = 0;
+                this.state.inventory.forEach(item => {
+                    if (item.shelfLife <= 0 && !item.used) {
+                        item.used = true;
+                        item.spoiled = true;
+                        this.state.score += 15;
+                        spoiledItems++;
+                    }
+                });
+
+                let summaryMessage = '';
+                if (spoiledItems > 0) {
+                    const penalty = spoiledItems * 20000;
+                    this.state.money -= penalty;
+                    summaryMessage = `You wasted ${spoiledItems} item(s)! You are fined ${this.formatVND(penalty)}.`;
+                } else {
+                    const bonus = 25000;
+                    this.state.money += bonus;
+                    summaryMessage = `Zero waste! You earned a bonus of ${this.formatVND(bonus)}!`;
+                }
+
+                // Remove used/spoiled items from inventory
+                this.state.inventory = this.state.inventory.filter(item => !item.used);
+                this.switchView('summary', summaryMessage);
+            }
+
+            // --- VIEW SWITCHING & RENDERING ---
+            switchView(view, data) {
+                this.state.currentView = view;
+                this.render(data);
+            }
+
+            render(data) {
+                this.updateStatus();
+                this.elements.navigationBar.classList.add('hidden');
+                this.elements.dayTimerContainer.classList.add('hidden');
+                this.elements.actionButton.classList.add('hidden');
+
+                switch (this.state.currentView) {
+                    case 'welcome': this.renderWelcome(); break;
+                    case 'shop':
+                    case 'kitchen':
+                        this.elements.navigationBar.classList.remove('hidden');
+                        this.elements.dayTimerContainer.classList.remove('hidden');
+                        document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+                        document.getElementById(`nav-${this.state.currentView}`).classList.add('active');
+                        if (this.state.currentView === 'shop') this.renderShopView();
+                        else this.renderKitchenView();
+                        break;
+                    case 'summary': this.renderSummary(data); break;
+                }
+            }
+
             updateStatus() {
                 this.elements.scoreDisplay.textContent = `Waste Score: ${this.state.score}%`;
-                this.elements.dayDisplay.textContent = this.state.stage === 'planning' ? `Day: ${this.state.day} / 3` : `Budget: ${this.formatVND(this.state.money)}`;
+                this.elements.moneyDisplay.textContent = `Budget: ${this.formatVND(this.state.money)}`;
+                if (this.state.day > 0) this.elements.dayDisplay.textContent = `Day: ${this.state.day} / ${this.state.maxDays}`;
             }
+
+            renderWelcome() {
+                this.elements.content.innerHTML = `<div class="text-center p-4"><p class="text-5xl mb-4">🛒 → 🍳 → 🏆</p><p class="text-gray-600">Manage your time and money to become a Zero-Waste Champion!</p></div>`;
+                this.elements.actionButton.classList.remove('hidden');
+                this.elements.actionButton.textContent = "Start Day 1";
+                this.elements.actionButton.onclick = () => this.startDay();
+            }
+
+            // --- SHOP VIEW ---
+            renderShopView() {
+                const listHtml = this.shoppingItems.map(item => {
+                    if (item.locked) {
+                        return `<div class="p-4 border-2 rounded-xl text-center bg-gray-200 flex flex-col justify-center items-center opacity-70">
+                            <p class="text-4xl">🔒</p><p class="font-semibold text-gray-800">${item.name}</p>
+                            <button class="text-sm bg-green-500 text-white font-bold py-2 px-4 rounded-full mt-2" onclick="game.unlockItem('${item.id}')">Unlock for ${this.formatVND(item.unlockCost)}</button>
+                        </div>`;
+                    }
+                    return `<div class="p-4 border-2 rounded-xl text-center bg-gray-50 flex flex-col justify-between">
+                        <div><p class="text-4xl">${item.emoji}</p><p class="font-semibold text-gray-800">${item.name}</p><p class="text-sm text-indigo-500">${this.formatVND(item.cost)}</p><p class="text-xs ${item.shelfLife <= 2 ? 'text-red-500 font-bold' : 'text-gray-500'}">Shelf Life: ${item.shelfLife} days</p></div>
+                        <button class="text-sm bg-indigo-500 text-white font-bold py-2 px-4 rounded-full mt-4" onclick="game.buyItem('${item.id}')">Buy</button>
+                    </div>`;
+                }).join('');
+                this.elements.content.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4">${listHtml}</div>`;
+            }
+
+            buyItem(itemId) {
+                const item = this.shoppingItems.find(i => i.id === itemId);
+                if (this.state.money >= item.cost) {
+                    this.state.money -= item.cost;
+                    let instanceId = this.state.inventory.length > 0 ? (Math.max(...this.state.inventory.map(i => i.instanceId)) + 1) : 0;
+                    this.state.inventory.push({ ...item, used: false, spoiled: false, instanceId: instanceId, shelfLife: item.shelfLife + 1 });
+                    this.showNotification(`Bought ${item.name}!`, "success");
+                    this.updateStatus();
+                } else {
+                    this.showNotification("Not enough money!", "error");
+                }
+            }
+
+            unlockItem(itemId) {
+                const item = this.shoppingItems.find(i => i.id === itemId);
+                if (this.state.money >= item.unlockCost) {
+                    this.state.money -= item.unlockCost;
+                    item.locked = false;
+                    this.showNotification(`Unlocked ${item.name}!`, "success");
+                    this.renderShopView();
+                } else {
+                    this.showNotification("Not enough money to unlock!", "error");
+                }
+            }
+
+            // --- KITCHEN VIEW ---
+            renderKitchenView() {
+                const inventoryHtml = this.state.inventory.filter(i => !i.used).map(item => `
+                    <div id="inv-item-${item.instanceId}" class="inventory-item p-2 rounded-lg text-center bg-yellow-100" draggable="true" ondragstart="game.dragStart(event, ${item.instanceId})">
+                        <p class="text-2xl pointer-events-none">${item.emoji}</p>
+                        <p class="text-xs pointer-events-none ${item.shelfLife <= 1 ? 'text-red-500 font-bold' : ''}">Expires in: ${item.shelfLife} days</p>
+                    </div>
+                `).join('') || '<p class="text-gray-500 text-sm text-center col-span-full">Your fridge is empty! Go shopping.</p>';
+
+                const stovesHtml = this.state.stoves.map((stove, index) => {
+                    let content = '';
+                    if (stove.cooking) {
+                        content = `<p class="text-4xl">${stove.recipe.emoji}</p><p class="font-bold text-sm">${stove.recipe.name}</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                <div class="bg-green-600 h-2.5 rounded-full cooking-progress" style="width: 0%"></div>
+                            </div>`;
+                    }
+                    return `<div id="stove-${index}" class="stove flex flex-col items-center justify-center p-2 ${stove.cooking ? 'cooking' : ''}" ondragover="game.dragOver(event, ${index})" ondragleave="game.dragLeave(event, ${index})" ondrop="game.dropOnStove(event, ${index})">${content}</div>`;
+                }).join('');
+
+                this.elements.content.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-1 p-4 bg-gray-50 rounded-xl">
+                            <h3 class="font-bold mb-3 text-lg text-gray-700 text-center">Your Fridge</h3>
+                            <div class="grid grid-cols-3 gap-2">${inventoryHtml}</div>
+                        </div>
+                        <div class="lg:col-span-3 p-4 bg-indigo-50 rounded-xl">
+                            <h3 class="font-bold mb-3 text-lg text-indigo-700 text-center">Stoves (Drop an ingredient to start cooking)</h3>
+                            <div class="grid grid-cols-3 gap-4">${stovesHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            dragStart(event, instanceId) { event.dataTransfer.setData("text/plain", instanceId); }
+            dragOver(event, stoveIndex) {
+                if (!this.state.stoves[stoveIndex].cooking) {
+                    event.preventDefault();
+                    document.getElementById(`stove-${stoveIndex}`).classList.add('droppable');
+                }
+            }
+            dragLeave(event, stoveIndex) { document.getElementById(`stove-${stoveIndex}`).classList.remove('droppable'); }
+
+            dropOnStove(event, stoveIndex) {
+                event.preventDefault();
+                document.getElementById(`stove-${stoveIndex}`).classList.remove('droppable');
+                const instanceId = parseInt(event.dataTransfer.getData("text/plain"));
+                const draggedItem = this.state.inventory.find(i => i.instanceId === instanceId);
+                if (!draggedItem || draggedItem.used) return;
+
+                const recipe = this.recipes.find(r => r.required.includes(draggedItem.id));
+                if (!recipe) {
+                    this.showNotification("This ingredient doesn't start any recipe.", "error");
+                    return;
+                }
+
+                let ingredientsToUse = [];
+                let canCook = true;
+                const availableInventory = this.state.inventory.filter(i => !i.used);
+
+                for (const reqId of recipe.required) {
+                    const foundItemIndex = availableInventory.findIndex(item => item.id === reqId);
+                    if (foundItemIndex !== -1) {
+                        ingredientsToUse.push(availableInventory[foundItemIndex]);
+                        availableInventory.splice(foundItemIndex, 1); // Ensure we don't use the same item twice
+                    } else {
+                        canCook = false;
+                        break;
+                    }
+                }
+
+                if (canCook) {
+                    if (this.timeRemaining >= recipe.cookingTime) {
+                        ingredientsToUse.forEach(item => { item.used = true; });
+                        this.state.stoves[stoveIndex] = { cooking: true, recipe: recipe, timeLeft: recipe.cookingTime };
+                        this.showNotification(`Cooking ${recipe.name}...`, "info");
+                        this.renderKitchenView(); // Re-render to show the cooking state
+                    } else {
+                        this.showNotification("Not enough time left in the day to cook this!", "error");
+                    }
+                } else {
+                    this.showNotification(`You don't have all ingredients for ${recipe.name}.`, "error");
+                }
+            }
+
+            finishCooking(stoveIndex) {
+                const recipe = this.state.stoves[stoveIndex].recipe;
+                this.showNotification(`${recipe.name} is ready!`, "success");
+                this.state.stoves[stoveIndex] = { cooking: false, recipe: null, timeLeft: 0 };
+                // We will re-render the whole kitchen at the end to clean up inventory
+            }
+
+            // --- SUMMARY VIEW ---
+            renderSummary(message) {
+                this.elements.content.innerHTML = `
+                    <div class="text-center p-6 bg-indigo-50 rounded-xl">
+                        <p class="text-6xl mb-4">${this.state.money >= 0 ? '🎉' : '😥'}</p>
+                        <p class="text-2xl font-extrabold text-indigo-700 mb-3">End of Day ${this.state.day}</p>
+                        <p class="text-lg text-gray-700">${message}</p>
+                    </div>
+                `;
+                this.elements.actionButton.classList.remove('hidden');
+                if (this.state.day >= this.state.maxDays) {
+                    this.elements.actionButton.textContent = "Play Again";
+                    this.elements.actionButton.onclick = () => this.init();
+                } else {
+                    this.elements.actionButton.textContent = `Start Day ${this.state.day + 1}`;
+                    this.elements.actionButton.onclick = () => this.startDay();
+                }
+            }
+
+            // --- Utility Functions ---
             formatVND(amount) { return amount.toLocaleString('vi-VN') + ' VND'; }
             showNotification(message, type = 'info') {
                 const notif = document.createElement('div');
@@ -184,274 +499,6 @@
                 notif.textContent = message;
                 this.elements.notificationArea.appendChild(notif);
                 setTimeout(() => notif.remove(), 4000);
-            }
-
-            // --- RENDER ENGINE ---
-            render() {
-                this.updateStatus();
-                switch (this.state.stage) {
-                    case 'welcome': this.renderWelcome(); break;
-                    case 'shopping': this.renderShopping(); break;
-                    case 'planning': this.renderPlanning(); break;
-                    case 'final': this.renderFinal(); break;
-                }
-            }
-
-            // --- STAGE 1: WELCOME ---
-            renderWelcome() {
-                // ... same as before ...
-                this.elements.title.textContent = "Zero-Waste Kitchen";
-                this.elements.description.textContent = "Your challenge: Plan 3 days of meals without wasting food or money!";
-                this.elements.content.innerHTML = `<div class="text-center p-4"><p class="text-5xl mb-4">🛒 → 🗓️ → ♻️</p><p class="text-gray-600">Buy only what you need, cook creatively, and master your kitchen!</p></div>`;
-                this.elements.actionButton.textContent = "Start Shopping";
-                this.elements.actionButton.onclick = () => { this.state.stage = 'shopping'; this.render(); };
-                this.elements.actionButton.disabled = false;
-            }
-
-            // --- STAGE 2: SHOPPING (REWORKED) ---
-            renderShopping() {
-                this.elements.title.textContent = "Stage 1: Smart Shopping";
-                this.elements.description.textContent = `Add ingredients to your cart. Remember, your budget is ${this.formatVND(this.state.money)}. Don't buy more than you can cook!`;
-
-                const listHtml = this.shoppingItems.map(item => {
-                    const quantity = this.state.shoppingCart.get(item.id) || 0;
-                    return `
-                    <div id="shop-item-${item.id}" class="item-card p-4 border-2 rounded-xl text-center bg-gray-50 flex flex-col justify-between">
-                        <div>
-                            <p class="text-4xl">${item.emoji}</p>
-                            <p class="font-semibold text-gray-800">${item.name}</p>
-                            <p class="text-sm text-indigo-500">${this.formatVND(item.cost)}</p>
-                            <p class="text-xs ${item.shelfLife <= 2 ? 'text-red-500 font-bold' : 'text-gray-500'}">Shelf Life: ${item.shelfLife} days</p>
-                        </div>
-                        <div class="flex items-center justify-center mt-4 bg-gray-200 rounded-full">
-                            <button class="quantity-btn font-bold text-xl w-8 h-8 rounded-full" onclick="game.updateCart('${item.id}', -1)">-</button>
-                            <span class="font-bold text-lg w-10 text-center">${quantity}</span>
-                            <button class="quantity-btn font-bold text-xl w-8 h-8 rounded-full" onclick="game.updateCart('${item.id}', 1)">+</button>
-                        </div>
-                    </div>
-                `}).join('');
-
-                this.elements.content.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4">${listHtml}</div>`;
-                this.elements.actionButton.textContent = "Proceed to Meal Planning";
-                this.elements.actionButton.onclick = () => this.startPlanningPhase();
-                // Can proceed if at least one item is in the cart
-                this.elements.actionButton.disabled = this.state.shoppingCart.size === 0;
-            }
-
-            updateCart(itemId, amount) {
-                const item = this.shoppingItems.find(i => i.id === itemId);
-                const currentQuantity = this.state.shoppingCart.get(itemId) || 0;
-
-                if (amount > 0) { // Adding to cart
-                    if (this.state.money >= item.cost) {
-                        this.state.money -= item.cost;
-                        this.state.shoppingCart.set(itemId, currentQuantity + 1);
-                    } else {
-                        this.showNotification("Not enough money!", "error");
-                    }
-                } else { // Removing from cart
-                    if (currentQuantity > 0) {
-                        this.state.money += item.cost;
-                        this.state.shoppingCart.set(itemId, currentQuantity - 1);
-                        if (this.state.shoppingCart.get(itemId) === 0) {
-                            this.state.shoppingCart.delete(itemId);
-                        }
-                    }
-                }
-                this.renderShopping(); // Re-render to update quantities and budget
-            }
-
-            startPlanningPhase() {
-                if (this.state.shoppingCart.size === 0) {
-                    this.showNotification("Your cart is empty! Buy something first.", "error");
-                    return;
-                }
-                // Create unique instances for each item in inventory
-                let instanceId = 0;
-                this.state.inventory = [];
-                this.state.shoppingCart.forEach((quantity, itemId) => {
-                    for (let i = 0; i < quantity; i++) {
-                        const itemData = this.shoppingItems.find(item => item.id === itemId);
-                        this.state.inventory.push({ ...itemData, instanceId: instanceId++ });
-                    }
-                });
-
-                this.state.stage = 'planning';
-                this.state.day = 1;
-                this.render();
-            }
-
-            // --- STAGE 3: PLANNING (REWORKED FOR DRAG & DROP) ---
-            renderPlanning() {
-                // Spoilage check
-                this.state.inventory.forEach(item => {
-                    if (item.shelfLife <= 0 && !item.used) {
-                        item.used = true;
-                        item.spoiled = true;
-                        this.state.score += 15;
-                        this.showNotification(`${item.name} spoiled! +15% waste.`, 'error');
-                    }
-                });
-
-                if (this.state.day > 3) {
-                    this.startFinalPhase();
-                    return;
-                }
-
-                this.updateStatus();
-                this.elements.title.textContent = `Stage 2: Meal Planning (Day ${this.state.day})`;
-                this.elements.description.textContent = "Drag your ingredients from the fridge onto a recipe to cook it.";
-
-                const inventoryHtml = this.state.inventory.filter(i => !i.used).map(item => `
-                    <div id="inv-item-${item.instanceId}" class="inventory-item p-2 rounded-lg text-center bg-yellow-100" draggable="true" ondragstart="game.dragStart(event, ${item.instanceId})">
-                        <p class="text-2xl pointer-events-none">${item.emoji}</p>
-                        <p class="font-semibold text-sm pointer-events-none">${item.name}</p>
-                        <p class="text-xs pointer-events-none ${item.shelfLife <= 1 ? 'text-red-500 font-bold' : ''}">Expires in: ${item.shelfLife} days</p>
-                    </div>
-                `).join('') || '<p class="text-gray-500 text-sm text-center">Your fridge is empty!</p>';
-
-                const recipesHtml = this.recipes.map(recipe => {
-                    const requiredEmojis = recipe.required.map(reqId => this.shoppingItems.find(i => i.id === reqId)?.emoji || '❔').join(' + ');
-                    return `
-                        <div id="recipe-${recipe.id}" class="recipe-card p-3 border-2 border-gray-200 rounded-xl text-center bg-gray-50 flex flex-col justify-between" ondragover="game.dragOver(event, '${recipe.id}')" ondragleave="game.dragLeave(event, '${recipe.id}')" ondrop="game.dropOnRecipe(event, '${recipe.id}')">
-                            <div>
-                                <p class="font-bold text-indigo-600">${recipe.name}</p>
-                                <p class="text-2xl my-2 pointer-events-none">${requiredEmojis}</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2 pointer-events-none">Drop ingredients here</p>
-                        </div>
-                    `;
-                }).join('');
-
-                this.elements.content.innerHTML = `
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="md:col-span-1 p-4 bg-gray-50 rounded-xl">
-                            <h3 class="font-bold mb-3 text-lg text-gray-700 text-center">Your Fridge</h3>
-                            <div class="grid grid-cols-2 gap-2">${inventoryHtml}</div>
-                        </div>
-                        <div class="md:col-span-2 p-4 bg-indigo-50 rounded-xl">
-                            <h3 class="font-bold mb-3 text-lg text-indigo-700 text-center">Recipe Book</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">${recipesHtml}</div>
-                        </div>
-                    </div>
-                `;
-                this.elements.actionButton.textContent = "End Day & Tidy Up";
-                this.elements.actionButton.onclick = () => this.advanceDay();
-                this.elements.actionButton.disabled = false;
-            }
-
-            dragStart(event, instanceId) {
-                event.dataTransfer.setData("text/plain", instanceId);
-            }
-
-            dragOver(event, recipeId) {
-                event.preventDefault();
-                document.getElementById(`recipe-${recipeId}`).classList.add('droppable');
-            }
-
-            dragLeave(event, recipeId) {
-                document.getElementById(`recipe-${recipeId}`).classList.remove('droppable');
-            }
-
-            dropOnRecipe(event, recipeId) {
-                event.preventDefault();
-                const instanceId = parseInt(event.dataTransfer.getData("text/plain"));
-                const draggedItem = this.state.inventory.find(i => i.instanceId === instanceId);
-                const recipe = this.recipes.find(r => r.id === recipeId);
-                document.getElementById(`recipe-${recipeId}`).classList.remove('droppable');
-
-                if (!this.tempCookingSlot) {
-                    this.tempCookingSlot = { recipeId: null, items: [] };
-                }
-
-                // If starting a new recipe, clear the old one
-                if (this.tempCookingSlot.recipeId !== recipeId) {
-                    this.tempCookingSlot.recipeId = recipeId;
-                    this.tempCookingSlot.items = [];
-                }
-
-                // Check if item is needed and not already added
-                const isNeeded = recipe.required.includes(draggedItem.id);
-                const alreadyAddedCount = this.tempCookingSlot.items.filter(i => i.id === draggedItem.id).length;
-                const requiredCount = recipe.required.filter(id => id === draggedItem.id).length;
-
-                if (isNeeded && alreadyAddedCount < requiredCount && !draggedItem.used) {
-                    this.tempCookingSlot.items.push(draggedItem);
-                    draggedItem.used = true; // Temporarily mark as used
-                    this.showNotification(`Added ${draggedItem.name} to ${recipe.name}!`, "info");
-
-                    // Visually disable the dragged item
-                    document.getElementById(`inv-item-${instanceId}`).style.opacity = '0.4';
-
-                    // Check if recipe is complete
-                    if (this.tempCookingSlot.items.length === recipe.required.length) {
-                        this.cookMeal(recipe);
-                    }
-                } else {
-                    this.showNotification("This ingredient isn't needed here or you've added enough.", "error");
-                }
-            }
-
-            cookMeal(recipe) {
-                this.showNotification(`Success! You cooked ${recipe.name}.`, "success");
-                // Leftovers logic
-                if (recipe.leftover) { this.state.leftovers.push({ ...recipe.leftover }); }
-                // Clear the temporary cooking slot
-                this.tempCookingSlot = { recipeId: null, items: [] };
-                // Advance to the next day
-                this.advanceDay();
-            }
-
-            advanceDay() {
-                this.state.day++;
-                this.state.inventory.forEach(item => {
-                    if (!item.used) item.shelfLife -= 1;
-                });
-                this.render();
-            }
-
-            // --- FINAL STAGE ---
-            startFinalPhase() {
-                // Final penalty for unused items
-                this.state.inventory.forEach(item => {
-                    if (!item.used && !item.spoiled) {
-                        this.state.score += 10;
-                        this.showNotification(`${item.name} was not used! +10% waste.`, "error");
-                    }
-                });
-                this.state.stage = 'final';
-                this.render();
-            }
-
-            renderFinal() {
-                this.updateStatus();
-                this.elements.dayDisplay.textContent = "Challenge Complete";
-
-                let finalMessage = '';
-                let finalEmoji = '';
-
-                if (this.state.score === 0) {
-                    finalMessage = "Perfect! You are a Zero-Waste Master Chef! A true inspiration.";
-                    finalEmoji = '🏆';
-                } else if (this.state.score <= 25) {
-                    finalMessage = "Excellent work! You planned your meals wisely and saved leftovers creatively.";
-                    finalEmoji = '👍';
-                } else {
-                    finalMessage = "Good effort, but there's room to improve. Careful shopping and planning are key!";
-                    finalEmoji = '🗑️';
-                }
-
-                this.elements.title.textContent = "Final Results";
-                this.elements.description.textContent = "Thanks for playing! Every small choice makes a big difference.";
-                this.elements.content.innerHTML = `
-                    <div class="text-center p-6 bg-indigo-50 rounded-xl">
-                        <p class="text-6xl mb-4">${finalEmoji}</p>
-                        <p class="text-2xl font-extrabold text-indigo-700 mb-3">Final Waste Score: ${this.state.score}%</p>
-                        <p class="text-lg text-gray-700">${finalMessage}</p>
-                    </div>
-                `;
-                this.elements.actionButton.textContent = "Play Again";
-                this.elements.actionButton.onclick = () => this.init();
             }
         }
 
