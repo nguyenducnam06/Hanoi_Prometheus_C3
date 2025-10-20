@@ -74,17 +74,17 @@ body {
 
 /* Specific view backgrounds */
 .view-kitchen .card::before {
-  background-image: url("../assets/images/kitchen.png");
+  background-image: url("../../assets/images/kitchen.png");
   opacity: 1;
 }
 
 .view-shop .card::before {
-  background-image: url("../assets/images/supermarket.png");
+  background-image: url("../../assets/images/supermarket.png");
   opacity: 1;
 }
 
 .view-welcome .card::before {
-  background-image: url("../assets/images/menu.png");
+  background-image: url("../../assets/images/menu.png");
   opacity: 1;
 }
 
@@ -398,4 +398,12 @@ button:disabled {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.inv-item-img,
+.summary-item-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  vertical-align: middle;
 }

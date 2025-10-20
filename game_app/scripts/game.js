@@ -38,6 +38,24 @@ class ZeroWasteGame {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  async loadAssets() {
+    const promises = this.shoppingItems.map((item) => {
+      if (!item.img) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = item.img;
+        img.onload = () => {
+          this.assetImages[item.id] = img;
+          resolve();
+        };
+        img.onerror = () => {
+          console.error(`Failed to load image: ${item.img}`);
+          reject(`Failed to load image: ${item.img}`);
+        };
+      });
+    });
+    await Promise.all(promises);
+  }
   initData() {
     this.shoppingItems = [
       {
@@ -45,7 +63,7 @@ class ZeroWasteGame {
         cost: 15000,
         shelfLife: 3,
         id: "carrot",
-        emoji: "🥕",
+        img: "assets/images/carrot.png", // Example path, create this asset
         locked: false,
       },
       {
@@ -53,7 +71,7 @@ class ZeroWasteGame {
         cost: 25000,
         shelfLife: 50,
         id: "rice",
-        emoji: "🍚",
+        img: "assets/images/rice.png",
         locked: false,
       },
       {
@@ -61,7 +79,7 @@ class ZeroWasteGame {
         cost: 70000,
         shelfLife: 1,
         id: "beef",
-        emoji: "🥩",
+        img: "assets/images/beef.png",
         locked: false,
       },
       {
@@ -69,7 +87,7 @@ class ZeroWasteGame {
         cost: 30000,
         shelfLife: 7,
         id: "egg",
-        emoji: "🥚",
+        img: "assets/images/egg.png",
         locked: false,
       },
       {
@@ -77,7 +95,7 @@ class ZeroWasteGame {
         cost: 18000,
         shelfLife: 2,
         id: "spinach",
-        emoji: "🥬",
+        img: "assets/images/spinach.png",
         locked: false,
       },
     ];
