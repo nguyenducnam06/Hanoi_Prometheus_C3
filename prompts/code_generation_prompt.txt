@@ -1,0 +1,3 @@
+Gemini prompts for ideas: write code for web app game, front-end only, using HTML, JavaScript and CSS: content of game: narration game, 3 stages, about solving waste food, stage 1: shopping for food, stage 2: plan the meal in the day with given family members and eating capacity and time limit for the ingredients, how to avoid wasting ingredients / ingredients out of date. Stage 3: solving food waste: merging left ingredients to make meals (like fruit merge game)
+
+
